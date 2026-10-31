@@ -1,0 +1,33 @@
+@host = http://localhost:8080
+
+GET {{host}}/
+
+###
+POST {{host}}/api/projects
+Content-Type: application/json
+
+{ "name": "Курс DevOps" }
+
+###
+GET {{host}}/api/projects
+
+###
+POST {{host}}/api/tasks
+Content-Type: application/json
+
+{ "projectId": 1, "title": "Написать Dockerfile", "dueDate": "2026-10-01" }
+
+###
+GET {{host}}/api/tasks?projectId=1&status=Todo
+
+###
+PATCH {{host}}/api/tasks/1/status
+Content-Type: application/json
+
+{ "status": "InProgress" }
+
+###
+GET {{host}}/health/ready
+
+###
+GET {{host}}/metrics

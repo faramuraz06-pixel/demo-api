@@ -1,0 +1,18 @@
+@'
+**/bin/
+**/obj/
+**/TestResults/
+.git
+.github
+.vs
+.vscode
+.idea
+tests/
+monitoring/
+scripts/
+db/
+*.md
+Dockerfile
+compose*.yaml
+.env
+'@ | Set-Content -Encoding utf8 .dockerignore

@@ -1,0 +1,50 @@
+groups:
+  - name: demo-api
+    rules:
+      - alert: ApiDown
+        expr: up{job="demo-api"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "DemoApi не отвечает на /metrics"
+
+      - alert: ApiHighErrorRate
+        expr: |
+          sum(rate(http_requests_received_total{job="demo-api", code=~"5.."}[1m]))
+            / sum(rate(http_requests_received_total{job="demo-api"}[1m])) > 0.05
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Доля 5xx выше 5%"
+
+      - alert: ApiSlowRequests
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(http_request_duration_seconds_bucket{job="demo-api"}[1m]))) > 1
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "p95 времени ответа больше 1 секунды"
+
+  - name: containers
+    rules:
+      - alert: ContainerHighMemory
+        expr: |
+          container_memory_working_set_bytes{name="demo-api-1"}
+            / (container_spec_memory_limit_bytes{name="demo-api-1"} > 0) > 0.8
+        for: 15s
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.name }}: память выше 80% лимита"
+
+      - alert: ContainerRestarted
+        # После рестарта cAdvisor заводит новую серию, поэтому сначала агрегируем, потом считаем изменения
+        expr: changes((max by (name) (container_start_time_seconds{name="demo-api-1"}))[5m:5s]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.name }} перезапускался за последние 5 минут"
